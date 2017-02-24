@@ -5,9 +5,7 @@
 class Object
 {
 	GLint textureLocation;
-
-	//Model* model;
-
+	
 	char* textureName;
 
 public:

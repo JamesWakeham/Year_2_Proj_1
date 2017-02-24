@@ -302,6 +302,8 @@ void Application3D::LoadImageTextures()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+
+	// now load the spec
 	imageWidth = imageHeight = imageFormat = 0;
 	data = stbi_load("./models/soulspear/soulspear_specular.tga", &imageWidth, &imageHeight, &imageFormat, STBI_default);
 
@@ -331,7 +333,6 @@ void Application3D::LoadObj()
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
 	bool success = tinyobj::LoadObj(&attribs, &shapes, &materials, &err, "./models/soulspear/soulspear.obj");
-	
 }
 
 void Application3D::CreateOpenGlBuffers(tinyobj::attrib_t & attribs, std::vector<tinyobj::shape_t>& shapes)
@@ -491,7 +492,6 @@ void Application3D::draw() {
 
 	for (auto& gl : m_glInfo) 
 	{
-
 		glBindVertexArray(gl.m_VAO); 
 		glDrawArrays(GL_TRIANGLES, 0, gl.m_faceCount * 3); 
 	}

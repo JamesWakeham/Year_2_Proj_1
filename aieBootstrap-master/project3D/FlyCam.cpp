@@ -73,11 +73,10 @@ void FlyCam::MouseLookUpdate(float deltaTime)
 	mat4 currentTransform = GetWorldTransform();
 	currentTransform[3] = vec4(0, 0, 0, 1);
 	mat4 rotation;
-	//if (input->isKeyDown(aie::INPUT_MOUSE_BUTTON_LEFT)) {
 
 	rotation = glm::rotate(rotation, (mousePosLastUpdate.x - mousePosThisUpdate.x)*deltaTime*lookSpeed, vec3(0, 1, 0));
 	rotation *= glm::rotate((mousePosLastUpdate.y - mousePosThisUpdate.y)*deltaTime*-lookSpeed, GetRow(0));
-	//}
+
 	currentTransform = rotation * currentTransform;
 	currentTransform[3] = GetWorldTransform()[3];
 	SetWorldTransform(currentTransform);
