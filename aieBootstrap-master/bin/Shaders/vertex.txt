@@ -1,0 +1,21 @@
+#version 410
+
+ layout(location=0) in vec3 position;
+ layout(location=1) in vec3 normal;
+ layout(location=2) in vec2 texCoord;
+
+ out vec2 vTexCoord;
+ out vec3 fNorm;
+ out vec3 vPos;
+
+ uniform mat4 projectionViewWorldMatrix;
+ uniform mat4 worldPositionMatrix;
+ void main() 
+ {
+    vec3 worldPos = (vec4(position,1) * worldPositionMatrix).xyz;
+	worldPos = worldPos;
+	vPos = worldPos;
+	fNorm = (vec4(normal, 0)*worldPositionMatrix).xyz;
+	vTexCoord = texCoord;
+	gl_Position= projectionViewWorldMatrix * vec4(worldPos,1);
+ }

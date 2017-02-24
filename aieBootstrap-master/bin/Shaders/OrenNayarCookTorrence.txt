@@ -1,0 +1,73 @@
+#version 410
+
+in vec2 vTexCoord;
+in vec3 fNorm;
+in vec3 vPos;
+
+out vec4 fragColor;
+
+uniform sampler2D diffuse;
+uniform sampler2D specMap;
+
+uniform float roughness;
+uniform vec3 LightDir;
+uniform vec3 CameraPos;
+uniform float reflectionCoefficient;
+
+void main() 
+{
+	float e = 2.7182818284590452353602874713527f;
+	float pi = 3.14159265359f;
+
+	vec2 flipperVTexCoOrd = vTexCoord;
+	flipperVTexCoOrd.y = 1-flipperVTexCoOrd.y;
+
+	vec3 lightDirTemp = normalize(LightDir);
+	vec3 surfaceToCam = CameraPos - vPos;
+	surfaceToCam = normalize(surfaceToCam);
+
+	vec3 H = normalize (lightDirTemp+CameraPos);
+
+	float NdL = max(0, dot(fNorm,lightDirTemp));
+	float NdE = max(0, dot (fNorm, surfaceToCam));
+
+	float R2 = roughness*roughness;
+	
+	float A = 1.0f - 0.5f * R2 / (R2 / 0.33f);
+	float B = 0.45f * R2 / (R2 + 0.09f);
+
+	vec3 lightProjected = normalize (lightDirTemp-fNorm*NdL);
+	vec3 viewProjected = normalize (surfaceToCam-fNorm*NdE);
+	float CX = max(0, dot(lightProjected,viewProjected));
+
+	float alpha = sin( max( acos( NdE ), acos( NdL ) ) );
+	float beta = tan( min( acos( NdE ), acos( NdL ) ) );
+	float DX = alpha * beta;
+
+	float OrenNayer = NdL * (A + B * CX * DX);
+
+
+	float NdH = max( 0.0f, dot( fNorm , H) );
+	float NdH2 = NdH * NdH;
+	
+	float exponent = -(1 - NdH2) / (NdH2 * R2);
+	float D = pow(e, exponent) / (R2 * NdH2 * NdH2);
+	
+	float F = reflectionCoefficient + (1 - reflectionCoefficient) * pow(1 - NdE, 5);
+
+	float X = 2.0f * NdH / dot(surfaceToCam,H);
+	float G = min(1, min(X * NdL, X * NdE));
+
+	float CookTorrance = max( (D*G*F) / (NdE * pi), 0.0f);
+
+	CookTorrance = max( 0,CookTorrance );
+	
+	OrenNayer = max( 0,OrenNayer );
+
+	vec4 onVec = vec4(OrenNayer,OrenNayer,OrenNayer,1);
+	vec4 ctVec = vec4(CookTorrance,CookTorrance,CookTorrance,1) * texture(specMap,flipperVTexCoOrd);
+
+	vec4 ambientLight = vec4(0.25f,0.25f,0.25f,1);
+
+	fragColor = texture(diffuse,flipperVTexCoOrd) *  (onVec + ctVec + ambientLight);
+}
