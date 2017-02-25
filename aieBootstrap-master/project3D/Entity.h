@@ -1,27 +1,33 @@
 #pragma once
-#include "Application3D.h"
+#include "MainHeader.h"
 
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
-
 class Entity
 {
-	
 public:
-	OpenGLInfo openGLInfo;
-	mat4 worldTransform = mat4(1);
-
 	Entity();
 	~Entity();
-	Entity(const vec3 startPos);
+	Entity(const glm::vec3 startPos);
 
-	void MoveTo(const vec3 worldSpacePos);
-	void MoveBy(const vec3 amount);
+	void Init(std::vector<OpenGLInfo> gLInfos);
 
-	void RotateBy(const float amount, const vec3 axis);
+	int modelRefNum = 0;
+	int diffuseRefNum = 1;
+	int specRefNum = 2;
+	float refCoef = 1;
+	float rough = 0.2f;
+	glm::mat4 worldTransform = glm::mat4(1);
+
+	OpenGLInfo openGLInfo;
+
+	void MoveTo(const glm::vec3 worldSpacePos);
+	void MoveBy(const glm::vec3 amount);
+
+	void RotateBy(const float amount, const glm::vec3 axis);
 	void SetRotationToIdentity();
 
-	void Draw();
+	void Draw(const int programID, float* sunDir);
 };
 

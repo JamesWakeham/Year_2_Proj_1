@@ -1,18 +1,16 @@
 #pragma once
-
-#include "Application.h"
-#include <glm/mat4x4.hpp>
-#include <vector>
+#include "MainHeader.h"
 #include "tiny_obj_loader.h"
-#include <glm\glm.hpp>
-#include <glm\ext.hpp>
-
-struct Vertex { glm::vec4 position; glm::vec4 colour; };
-struct OpenGLInfo { unsigned int m_VAO; unsigned int m_VBO; unsigned int m_faceCount; };
-struct OBJVertex { float x, y, z; float nx, ny, nz; float u, v; };
+#include "Gizmos.h"
+#include "Input.h"
+#include "Camera.h"
+#include "FlyCam.h"
+#include "Entity.h"
+#include "Application.h"
 
 class Application3D : public aie::Application {
 public:
+	//const static Application3D* instance;
 	// our vertex and index buffers 
 	unsigned int m_VAO;
 	unsigned int m_VBO;
@@ -24,10 +22,11 @@ public:
 	glm::vec3 sunCol;
 
 	std::vector<OpenGLInfo> m_glInfo;
-	
+
 	// obj mesh data is stored here after being loaded
 	tinyobj::attrib_t attribs;
 	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::shape_t> allShapes;
 
 	glm::mat4 modelPos;
 
@@ -51,6 +50,7 @@ public:
 	void LoadAllModels();
 
 	void LoadObj();
+	void LoadObj(const char* location);
 
 	void CreateOpenGlBuffers(tinyobj::attrib_t & attribs, std::vector<tinyobj::shape_t>& shapes);
 
@@ -58,7 +58,6 @@ public:
 	virtual void draw();
 
 	unsigned int GetProgromID();
-
 protected:
 
 	glm::mat4	m_viewMatrix;

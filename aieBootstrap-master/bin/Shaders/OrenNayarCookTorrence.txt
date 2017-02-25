@@ -13,7 +13,6 @@ uniform float roughness;
 uniform vec3 LightDir;
 uniform vec3 CameraPos;
 uniform float reflectionCoefficient;
-
 void main() 
 {
 	float e = 2.7182818284590452353602874713527f;

@@ -12,10 +12,9 @@
  uniform mat4 worldPositionMatrix;
  void main() 
  {
-    vec3 worldPos = (vec4(position,1) * worldPositionMatrix).xyz;
-	worldPos = worldPos;
-	vPos = worldPos;
-	fNorm = (vec4(normal, 0)*worldPositionMatrix).xyz;
+    vec4 worldPos =  worldPositionMatrix * vec4(position,1);
+	vPos = worldPos.xyz;
+	fNorm = (worldPositionMatrix*vec4(normal, 0)).xyz;
 	vTexCoord = texCoord;
-	gl_Position= projectionViewWorldMatrix * vec4(worldPos,1);
+	gl_Position= projectionViewWorldMatrix *worldPos;
  }
