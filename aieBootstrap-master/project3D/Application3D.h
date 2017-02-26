@@ -7,6 +7,7 @@
 #include "FlyCam.h"
 #include "Entity.h"
 #include "Application.h"
+#include "ParticleEmitter.h"
 
 class Application3D : public aie::Application {
 public:
@@ -30,6 +31,8 @@ public:
 
 	glm::mat4 modelPos;
 
+	ParticleEmitter* m_emitter;
+
 	Application3D();
 	virtual ~Application3D();
 
@@ -38,6 +41,7 @@ public:
 
 	void CreateShaders();
 	void CreateTextureShader();
+	void CreateParticleShader();
 
 	void GenerateGrid(unsigned int rows, unsigned int cols);
 	void GenerateTextureGrid();

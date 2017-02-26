@@ -94,6 +94,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="FlyCam.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="tiny_obj_loader.cc" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +103,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="FlyCam.h" />
     <ClInclude Include="MainHeader.h" />
+    <ClInclude Include="ParticleEmitter.h" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
