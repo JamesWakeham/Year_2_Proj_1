@@ -343,6 +343,7 @@ void Application3D::draw() {
 	int cameraPos = glGetUniformLocation(m_programID, "CameraPos");
 	glUniform3fv(cameraPos, 1, &(flyCam.GetWorldTransform()[3][0]));
 
+	glUseProgram(m_programID);
 	spear2.Draw(m_programID, &(sunPos[0]));
 	spear.Draw(m_programID, &(sunPos[0]));
 
@@ -352,6 +353,7 @@ void Application3D::draw() {
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
 	m_emitter->Draw();
 
+	glUseProgram(m_programID);
 }
 
 unsigned int Application3D::GetProgromID()

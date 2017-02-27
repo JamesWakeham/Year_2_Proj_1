@@ -23,7 +23,7 @@ FlyCam::FlyCam(float windowHeight, float windowLength)
 void FlyCam::FlyCamStart()
 {
 	speed = 5;
-	lookSpeed = 0.75f;
+	lookSpeed = 0.1f;
 	aie::Input* input = aie::Input::getInstance();
 }
 
