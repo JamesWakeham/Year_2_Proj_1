@@ -50,7 +50,7 @@ bool Application3D::startup() {
 	spear2.RotateBy(90, vec3(1, 1, 0));
 
 	m_emitter = new ParticleEmitter();
-	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
+	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f,3, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1),vec3(0,-1,0),false);
 
 	return true;
 }
@@ -179,6 +179,24 @@ void Application3D::LoadImageTextures()
 	// now load the spec
 	imageWidth = imageHeight = imageFormat = 0;
 	data = stbi_load("./models/soulspear/soulspear_specular.tga", &imageWidth, &imageHeight, &imageFormat, STBI_default);
+
+	glGenTextures(1, &specMap);
+	glBindTexture(GL_TEXTURE_2D, specMap);
+	if (imageFormat == 3) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
+	else if (imageFormat == 4) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	stbi_image_free(data);
+
+	// now load the spec
+	imageWidth = imageHeight = imageFormat = 0;
+	data = stbi_load("./textures/sparkle.png", &imageWidth, &imageHeight, &imageFormat, STBI_default);
 
 	glGenTextures(1, &specMap);
 	glBindTexture(GL_TEXTURE_2D, specMap);
@@ -332,6 +350,10 @@ void Application3D::draw() {
 	// wipe the screen to the background colour
 	clearScreen();
 
+	// sets oGL to linear texture Interpolation
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glUseProgram(m_programID);
 	// tell the shader where the pointer holding the ProjectionView is
 	int loc = glGetUniformLocation(m_programID, "projectionViewWorldMatrix");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
@@ -343,7 +365,6 @@ void Application3D::draw() {
 	int cameraPos = glGetUniformLocation(m_programID, "CameraPos");
 	glUniform3fv(cameraPos, 1, &(flyCam.GetWorldTransform()[3][0]));
 
-	glUseProgram(m_programID);
 	spear2.Draw(m_programID, &(sunPos[0]));
 	spear.Draw(m_programID, &(sunPos[0]));
 
@@ -351,9 +372,8 @@ void Application3D::draw() {
 	glUseProgram(m_particleProgramID);
 	loc = glGetUniformLocation(m_particleProgramID, "projectionViewWorldMatrix");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
-	m_emitter->Draw();
+	m_emitter->Draw(m_particleProgramID);
 
-	glUseProgram(m_programID);
 }
 
 unsigned int Application3D::GetProgromID()

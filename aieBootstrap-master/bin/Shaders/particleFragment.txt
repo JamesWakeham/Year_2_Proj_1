@@ -2,9 +2,14 @@
 #version 410 
 
 in vec4 colour; 
+in vec2 uv;
 out vec4 fragColour; 
 
+uniform sampler2D diffuse;
+
 void main() 
-{ 
-	fragColour = colour; 
+{
+	if (texture(diffuse,uv).xyz == vec3(0,0,0))
+		discard; 
+	fragColour = texture(diffuse,uv) * colour; 
 }

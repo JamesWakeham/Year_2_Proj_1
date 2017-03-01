@@ -39,19 +39,10 @@ public:
 	virtual bool startup();
 	virtual void shutdown();
 
-	void CreateShaders();
 	void CreateTextureShader();
 	void CreateParticleShader();
 
-	void GenerateGrid(unsigned int rows, unsigned int cols);
-	void GenerateTextureGrid();
-
-	void DrawGrid(unsigned int rows, unsigned int cols);
-	void DrawGridWithTexture();
-
 	void LoadImageTextures();
-
-	void LoadAllModels();
 
 	void LoadObj();
 	void LoadObj(const char* location);

@@ -90,12 +90,38 @@ void ParticleEmitter::Initialise(unsigned int a_maxParticles,
 	// colour 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(ParticleVertex), ((char*)0) + 16); 
+	// uv
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ParticleVertex), ((char*)0) + (16*2));
 
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 
 	delete[] indexData;
+}
+
+void ParticleEmitter::Initialise(
+	unsigned int a_maxParticles, 
+	unsigned int a_emitRate, 
+	float a_lifetimeMin, 
+	float a_lifetimeMax,
+	float a_velocityMin,
+	float a_velocityMax,
+	float a_startSize,
+	float a_endSize,
+	float a_textureRefNum,
+	const glm::vec4 & a_startColour,
+	const glm::vec4 & a_endColour, 
+	const glm::vec3 & a_constantForce,
+	bool a_rotateToFaceDir
+)
+{
+	m_rotateToFaceDir = a_rotateToFaceDir;
+	m_constantForce = a_constantForce;
+	m_textureRefNum = a_textureRefNum;
+	m_textured = true;
+	Initialise(a_maxParticles, a_emitRate, a_lifetimeMin, a_lifetimeMax, a_velocityMin, a_velocityMax, a_startSize, a_endSize, a_startColour, a_endColour);
 }
 
 void ParticleEmitter::Emit()
@@ -125,6 +151,7 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 {
 	using glm::vec3; 
 	using glm::vec4; 
+	using glm::vec2;
 	// spawn particles 
 	m_emitTimer += a_deltaTime; 
 	while (m_emitTimer > m_emitRate) 
@@ -146,8 +173,9 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 		} 
 		else 
 		{ 
+
 			// move particle 
-			particle->position += particle->velocity * a_deltaTime; 
+			particle->position += (particle->velocity + m_constantForce) * a_deltaTime;
 			// size particle 
 			particle->size = glm::mix(m_startSize, m_endSize, particle->lifetime / particle->lifespan); 
 			// colour particle 
@@ -156,21 +184,31 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 			float halfSize = particle->size * 0.5f; 
 			m_vertexData[quad * 4 + 0].position = vec4(halfSize, halfSize, 0, 1); 
 			m_vertexData[quad * 4 + 0].colour = particle->colour; 
+			m_vertexData[quad * 4 + 0].uv = vec2(1,1);
 
 			m_vertexData[quad * 4 + 1].position = vec4(-halfSize, halfSize, 0, 1); 
 			m_vertexData[quad * 4 + 1].colour = particle->colour; 
+			m_vertexData[quad * 4 + 1].uv = vec2(0, 1);
 
 			m_vertexData[quad * 4 + 2].position = vec4(-halfSize, -halfSize, 0, 1); 
 			m_vertexData[quad * 4 + 2].colour = particle->colour; 
+			m_vertexData[quad * 4 + 2].uv = vec2(0, 0);
 
 			m_vertexData[quad * 4 + 3].position = vec4(halfSize, -halfSize, 0, 1); 
-			m_vertexData[quad * 4 + 3].colour = particle->colour; 
+			m_vertexData[quad * 4 + 3].colour = particle->colour;
+			m_vertexData[quad * 4 + 3].uv = vec2(1,0);
 
 			//create billboard transform 
 			vec3 zAxis = glm::normalize(vec3(a_cameraTransform[3]) - particle->position); 
 			vec3 xAxis = glm::cross(vec3(a_cameraTransform[1]), zAxis); 
 			vec3 yAxis = glm::cross(zAxis, xAxis); 
 			glm::mat4 billboard(vec4(xAxis, 0), vec4(yAxis, 0), vec4(zAxis, 0), vec4(0,0,0,1)); 
+
+			// rotate bilboard by particles rotation
+			glm::mat4 rotation = glm::mat4(1);
+			rotation = glm::rotate(rotation, particle->rotation, vec3(0,0,1));
+			billboard *= rotation;
+
 			m_vertexData[quad * 4 + 0].position = 
 				billboard * 
 				m_vertexData[quad * 4 + 0].position + 
@@ -192,8 +230,19 @@ void ParticleEmitter::Update(float a_deltaTime, const glm::mat4 & a_cameraTransf
 	}
 }
 
-void ParticleEmitter::Draw()
+void ParticleEmitter::Draw(const int shaderID)
 {
+	if (m_textured) {
+		int loc;
+		// set texture slot 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_textureRefNum);
+
+		// tell the shader where it is
+		loc = glGetUniformLocation(shaderID, "diffuse");
+		glUniform1i(loc, 0);
+	}
+
 	// sync the particle vertex buffer 
 	// based on how many alive particles there are 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo); 

@@ -11,5 +11,5 @@
 struct OpenGLInfo { unsigned int m_VAO; unsigned int m_VBO; unsigned int m_faceCount; };
 struct OBJVertex { float x, y, z; float nx, ny, nz; float u, v; };
 
-struct Particle { glm::vec3 position; glm::vec3 velocity; glm::vec4 colour; float size; float lifetime; float lifespan; };
-struct ParticleVertex { glm::vec4 position; glm::vec4 colour; };
+struct Particle { glm::vec3 position; glm::vec3 velocity; glm::vec4 colour; float size; float lifetime; float lifespan; float rotation; };
+struct ParticleVertex { glm::vec4 position; glm::vec4 colour; glm::vec2 uv; };
