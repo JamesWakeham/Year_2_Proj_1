@@ -14,7 +14,7 @@ float rough = 0.2f;
 
 Entity spear;
 Entity spear2;
-unsigned int m_programID,m_particleProgramID;
+unsigned int m_programID,m_particleProgramID, m_bufferProgramID;
 
 Application3D::Application3D() {
 
@@ -24,8 +24,104 @@ Application3D::~Application3D() {
 
 }
 
+void Application3D::FrameBufferStartup()
+{
+	/*
+	// setup and bind a framebuffer 
+	glGenFramebuffers(1, &m_FBO); 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+
+	// create a texture and bind it 
+	glGenTextures(1, &m_fboTexture);
+	glBindTexture(GL_TEXTURE_2D, m_fboTexture);
+	// specify texture format for storage 
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 720);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// attach it to the framebuffer as the first colour attachment
+	// the FBO MUST still be bound
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fboTexture, 0);
+
+	// /Depth Buffer Setup
+	// setup and bind a 24bit depth buffer as a render buffer 
+	glGenRenderbuffers(1, &m_fboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_fboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1280, 720);
+	// while the FBO is still bound
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_fboDepth);
+	// Depth Buffer Setup/
+
+	// we attach render targets here, code on following pages 
+	// while the FBO is still bound 
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 }; 
+	glDrawBuffers(1, drawBuffers);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
+	if (status != GL_FRAMEBUFFER_COMPLETE) 
+		printf("Framebuffer Error!\n");
+
+	// unbind the FBO so that we can render to the back buffer 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	*/
+
+	// setup framebuffer 
+	glGenFramebuffers(1, &m_fbo); 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo); 
+	glGenTextures(1, &m_fboTexture); 
+	glBindTexture(GL_TEXTURE_2D, m_fboTexture); 
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 1280, 720); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_fboTexture, 0);
+	glGenRenderbuffers(1, &m_fboDepth); 
+	glBindRenderbuffer(GL_RENDERBUFFER, m_fboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1280, 720);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_fboDepth);
+	GLenum drawBuffers[] = 
+	{ 
+		GL_COLOR_ATTACHMENT0 
+	};
+
+	glDrawBuffers(1, drawBuffers); 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//	CREATE THE FULL SCREEN QUAD
+
+	glm::vec2 texelSize = 1.0f / glm::vec2(1280, 720);
+	// fullscreen quad 
+	glm::vec2 halfTexel = 1.0f / glm::vec2(1280, 720) * 0.5f; 
+	float vertexData[] = 
+	{ 
+		-1, -1, 0, 1, halfTexel.x, halfTexel.y, 
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y,
+		-1, 1, 0, 1, halfTexel.x, 1 - halfTexel.y,
+		
+		-1, -1, 0, 1, halfTexel.x, halfTexel.y,
+		1, -1, 0, 1, 1 - halfTexel.x, halfTexel.y,
+		1, 1, 0, 1, 1 - halfTexel.x, 1 - halfTexel.y,
+
+	}; 
+	
+	glGenVertexArrays(1, &m_vao); 
+	glBindVertexArray(m_vao); 
+
+	glGenBuffers(1, &m_vbo); 
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo); 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 6, vertexData, GL_STATIC_DRAW); 
+
+	glEnableVertexAttribArray(0); 
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0); 
+
+	glEnableVertexAttribArray(1); 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 6, ((char*)0) + 16);
+
+	glBindVertexArray(0); 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 bool Application3D::startup() {
 	setBackgroundColour(0.2f, 0.21f, 0.2f);
+
 
 	// create simple flying camera
 	flyCam = FlyCam((float)getWindowHeight(), (float)getWindowWidth());
@@ -37,10 +133,13 @@ bool Application3D::startup() {
 
 	CreateTextureShader();
 	CreateParticleShader();
+	CreateBufferShader();
 
 	LoadObj();
 
 	CreateOpenGlBuffers(attribs, shapes);
+
+	FrameBufferStartup();
 
 	//modelPos = mat4(1);
 	spear.Init(m_glInfo);
@@ -48,6 +147,9 @@ bool Application3D::startup() {
 
 	spear2.MoveBy(vec3(3, 0, 0));
 	spear2.RotateBy(90, vec3(1, 1, 0));
+
+	Gizmos::create(10000, 10000, 10000, 10000);
+
 
 	m_emitter = new ParticleEmitter();
 	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f,3, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1),vec3(0,-1,0),false);
@@ -98,7 +200,8 @@ void Application3D::CreateTextureShader()
 		char* infoLog = new char[infoLogLength];
 		glGetProgramInfoLog(m_programID, infoLogLength, 0, infoLog);
 		printf("Error: Failed to link shader program!\n");
-		printf("%s\n", infoLog); delete[] infoLog;
+		printf("%s\n", infoLog); 
+		delete[] infoLog;
 	}
 	else {
 		printf("Texture Shaders Compiled Successfully \n");
@@ -148,7 +251,8 @@ void Application3D::CreateParticleShader()
 		char* infoLog = new char[infoLogLength];
 		glGetProgramInfoLog(m_particleProgramID, infoLogLength, 0, infoLog);
 		printf("Error: Failed to link shader program!\n");
-		printf("%s\n", infoLog); delete[] infoLog;
+		printf("%s\n", infoLog); 
+		delete[] infoLog;
 	}
 	else {
 		printf("Particle Shaders Compiled Successfully \n");
@@ -156,6 +260,58 @@ void Application3D::CreateParticleShader()
 
 	glDeleteShader(partVertexShader);
 	glDeleteShader(partFragmentShader);
+}
+
+void Application3D::CreateBufferShader()
+{
+	int success = GL_FALSE;
+
+	// m_bufferProgramID
+	// buffer Vertex
+	std::ifstream in3("Shaders/BufferVertex.txt");
+	std::string partVertShadContents((std::istreambuf_iterator<char>(in3)),
+		std::istreambuf_iterator<char>());
+
+	// buffer Fragment
+	std::ifstream in4("Shaders/BufferFragment.txt");
+	std::string partFragShadContents((std::istreambuf_iterator<char>(in4)),
+		std::istreambuf_iterator<char>());
+
+	const char* partvsSource = partVertShadContents.c_str();
+	const char* partfsSource = partFragShadContents.c_str();
+
+	unsigned int bufferVertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(bufferVertexShader, 1, (const char**)&partvsSource, 0);
+	glCompileShader(bufferVertexShader);
+
+	unsigned int buffFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(buffFragmentShader, 1, (const char**)&partfsSource, 0);
+	glCompileShader(buffFragmentShader);
+
+	m_bufferProgramID = glCreateProgram();
+	glAttachShader(m_bufferProgramID, bufferVertexShader);
+	glAttachShader(m_bufferProgramID, buffFragmentShader);
+
+	glLinkProgram(m_bufferProgramID);
+
+	glGetProgramiv(m_bufferProgramID, GL_LINK_STATUS, &success);
+
+	if (success == GL_FALSE)
+	{
+		int infoLogLength = 0;
+		glGetProgramiv(m_bufferProgramID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		char* infoLog = new char[infoLogLength];
+		glGetProgramInfoLog(m_bufferProgramID, infoLogLength, 0, infoLog);
+		printf("Error: Failed to link buffer shader program!\n");
+		printf("%s\n", infoLog); 
+		delete[] infoLog;
+	}
+	else {
+		printf("Buffer Shaders Compiled Successfully \n");
+	}
+
+	glDeleteShader(bufferVertexShader);
+	glDeleteShader(buffFragmentShader);
 }
 
 void Application3D::LoadImageTextures()
@@ -336,26 +492,63 @@ void Application3D::update(float deltaTime) {
 	if (input->wasKeyPressed(aie::INPUT_KEY_LEFT)) {
 		refCoef -= 0.05f;
 	}
-	if (refCoef > 1)refCoef = 1;
-	if (rough > 1)rough = 1;
+	//if (refCoef > 1)refCoef = 1;
+	//if (rough > 1)rough = 1;
 
-	if (refCoef < 0)refCoef = 0;
-	if (rough < 0)rough = 0;
+	//if (refCoef < 0)refCoef = 0;
+	//if (rough < 0)rough = 0;
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 }
 
-void Application3D::draw() {
+void Application3D::draw() {	
+	int loc;
+	// wipe the gizmos clean for this frame
+	Gizmos::clear();
+	/*
+	// frame buffer stuff
+	//Gizmos::addSphere(vec3(0, 5, 0), 0.5f, 8, 8, vec4(1, 1, 0, 1));
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+	//glViewport(0, 0, 1280, 720);
+	//glClearColor(0.75f, 0.75f, 0.75f, 1);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//// draw our meshes, or gizmos, to the render target 
+	//Gizmos::draw(flyCam.GetProjectionView());
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glViewport(0, 0, 1280, 720);
+	//glClearColor(0.25f, 0.25f, 0.25f, 1);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glUseProgram(m_bufferProgramID);
+	//loc = glGetUniformLocation(m_bufferProgramID, "projectionView");
+	//glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, m_fboTexture);
+	//glUniform1i(glGetUniformLocation(m_bufferProgramID, "diffuse"), 0);
+	//glBindVertexArray(m_vao);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	*/
 
 	// wipe the screen to the background colour
-	clearScreen();
+	//clearScreen();
+
+
+
+	// bind our target 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glViewport(0, 0, 1280, 720);
+	// clear the target 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// draw our 3D scene 
+
 
 	// sets oGL to linear texture Interpolation
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glUseProgram(m_programID);
 	// tell the shader where the pointer holding the ProjectionView is
-	int loc = glGetUniformLocation(m_programID, "projectionViewWorldMatrix");
+	loc = glGetUniformLocation(m_programID, "projectionViewWorldMatrix");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
 
 	// set texture slot 
@@ -373,6 +566,32 @@ void Application3D::draw() {
 	loc = glGetUniformLocation(m_particleProgramID, "projectionViewWorldMatrix");
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
 	m_emitter->Draw(m_particleProgramID);
+
+
+	// draw our 3D scene 
+	// gizmos for now, but replace with a 3D scene if desired 
+	Gizmos::draw(flyCam.GetProjectionView()); 
+
+
+	// bind the back-buffer 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, 1280, 720);
+
+	// just clear the back-buffer depth as 
+	// each pixel will be filled 
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// draw our full-screen quad 
+	glUseProgram(m_bufferProgramID);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_fboTexture);
+
+	loc = glGetUniformLocation(m_bufferProgramID, "target");
+	glUniform1i(loc, 0);
+
+	glBindVertexArray(m_vao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 }
 

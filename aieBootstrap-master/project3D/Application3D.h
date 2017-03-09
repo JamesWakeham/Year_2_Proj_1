@@ -13,9 +13,14 @@ class Application3D : public aie::Application {
 public:
 	//const static Application3D* instance;
 	// our vertex and index buffers 
-	unsigned int m_VAO;
-	unsigned int m_VBO;
-	unsigned int m_IBO;
+	unsigned int m_vao;
+	unsigned int m_vbo;
+	unsigned int m_ibo;
+	// the frame buffer object
+	unsigned int m_fbo;
+
+	unsigned int m_fboDepth;
+	unsigned int m_fboTexture;
 
 	unsigned int m_texture,specMap;
 	
@@ -36,11 +41,14 @@ public:
 	Application3D();
 	virtual ~Application3D();
 
+	void FrameBufferStartup();
+
 	virtual bool startup();
 	virtual void shutdown();
 
 	void CreateTextureShader();
 	void CreateParticleShader();
+	void CreateBufferShader();
 
 	void LoadImageTextures();
 
