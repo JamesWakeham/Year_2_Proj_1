@@ -21,6 +21,17 @@ void Entity::Init(std::vector<OpenGLInfo> gLInfos)
 	openGLInfo = gLInfos[modelRefNum];
 }
 
+void Entity::ConfigureBoundingSpheres(const tinyobj::attrib_t* attribs)
+{
+	std::vector<vec3> tempVecs;
+	for (int i = 0; i < attribs->vertices.size(); i+=3)
+	{
+		vec3 temp = vec3(attribs->vertices[i], attribs->vertices[i + 1], attribs->vertices[i+2]);
+		tempVecs.push_back(temp);
+	}
+	sphere.fit(tempVecs);
+}
+
 void Entity::MoveTo(const vec3 worldSpacePos)
 {
 	worldTransform[3] = vec4(worldSpacePos, 1);

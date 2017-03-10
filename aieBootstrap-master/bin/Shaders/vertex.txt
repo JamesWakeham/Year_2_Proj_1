@@ -4,17 +4,37 @@
  layout(location=1) in vec3 normal;
  layout(location=2) in vec2 texCoord;
 
- out vec2 vTexCoord;
- out vec3 fNorm;
- out vec3 vPos;
+out vec2 vTexCoord;
+out vec3 fNorm;
+out vec3 vPos;
 
- uniform mat4 projectionViewWorldMatrix;
- uniform mat4 worldPositionMatrix;
- void main() 
- {
+uniform float vertPosterLevel;
+uniform mat4 projectionViewWorldMatrix;
+uniform mat4 worldPositionMatrix;
+void main() 
+{
     vec4 worldPos =  worldPositionMatrix * vec4(position,1);
 	vPos = worldPos.xyz;
 	fNorm = (worldPositionMatrix*vec4(normal, 0)).xyz;
 	vTexCoord = texCoord;
-	gl_Position= projectionViewWorldMatrix *worldPos;
- }
+
+	float tempx = worldPos.x;
+	float tempy = worldPos.y;
+	float tempz = worldPos.z;
+
+	tempx *= vertPosterLevel;
+	tempx = int(tempx);
+	tempx /= vertPosterLevel;
+
+	tempy *= vertPosterLevel;
+	tempy = int(tempy);
+	tempy /= vertPosterLevel;
+
+	tempz *= vertPosterLevel;
+	tempz = int(tempz);
+	tempz /= vertPosterLevel;
+
+	vec4 tempPos = vec4 (tempx,tempy,tempz,1);
+
+	gl_Position= projectionViewWorldMatrix *tempPos;
+}

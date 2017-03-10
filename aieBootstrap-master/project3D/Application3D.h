@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "Application.h"
 #include "ParticleEmitter.h"
+#include <imgui.h>
 
 class Application3D : public aie::Application {
 public:
@@ -59,6 +60,8 @@ public:
 
 	virtual void update(float deltaTime);
 	virtual void draw();
+
+	void RenderCulling(Entity entity);
 
 	unsigned int GetProgromID();
 protected:

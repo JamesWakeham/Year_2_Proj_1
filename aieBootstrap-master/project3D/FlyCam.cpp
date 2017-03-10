@@ -64,24 +64,29 @@ void FlyCam::Update(float deltaTime)
 void FlyCam::MouseLookUpdate(float deltaTime)
 {
 	aie::Input* input = aie::Input::getInstance();
+	if (input->wasKeyPressed(aie::INPUT_KEY_LEFT_ALT)) { lockRot = !lockRot; }
+	if (lockRot) {
+		vec2 mousePosThisUpdate = vec2(input->getMouseX(), input->getMouseY());
+		if (mousePosLastUpdate == vec2(0, 0)) {
+			mousePosLastUpdate = mousePosThisUpdate;
+		}
 
-	vec2 mousePosThisUpdate = vec2(input->getMouseX(), input->getMouseY());
-	if (mousePosLastUpdate == vec2(0,0)) {
+		mat4 currentTransform = GetWorldTransform();
+		currentTransform[3] = vec4(0, 0, 0, 1);
+		mat4 rotation;
+
+		rotation = glm::rotate(rotation, (mousePosLastUpdate.x - mousePosThisUpdate.x)*deltaTime*lookSpeed, vec3(0, 1, 0));
+		rotation *= glm::rotate((mousePosLastUpdate.y - mousePosThisUpdate.y)*deltaTime*-lookSpeed, GetRow(0));
+
+		currentTransform = rotation * currentTransform;
+		currentTransform[3] = GetWorldTransform()[3];
+		SetWorldTransform(currentTransform);
+
 		mousePosLastUpdate = mousePosThisUpdate;
 	}
-
-	mat4 currentTransform = GetWorldTransform();
-	currentTransform[3] = vec4(0, 0, 0, 1);
-	mat4 rotation;
-
-	rotation = glm::rotate(rotation, (mousePosLastUpdate.x - mousePosThisUpdate.x)*deltaTime*lookSpeed, vec3(0, 1, 0));
-	rotation *= glm::rotate((mousePosLastUpdate.y - mousePosThisUpdate.y)*deltaTime*-lookSpeed, GetRow(0));
-
-	currentTransform = rotation * currentTransform;
-	currentTransform[3] = GetWorldTransform()[3];
-	SetWorldTransform(currentTransform);
-
-	mousePosLastUpdate = mousePosThisUpdate;
+	else {
+		mousePosLastUpdate = vec2(input->getMouseX(), input->getMouseY());
+	}
 }
 
 

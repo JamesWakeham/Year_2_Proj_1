@@ -40,6 +40,8 @@ public:
 	mat4 GetProjection();
 	mat4 GetProjectionView();
 	vec3 GetRow(int row);
+
+	void getFrustumPlanes(const glm::mat4& transform, glm::vec4* planes);
 protected:
 	void UpdateProjectionViewMatrix();
 };

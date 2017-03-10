@@ -7,6 +7,8 @@
 #include <stb_image.h>
 #include <iostream>
 #include <fstream>
+#include "BoundingSphere.h"
+#include "tiny_obj_loader.h"
 
 struct OpenGLInfo { unsigned int m_VAO; unsigned int m_VBO; unsigned int m_faceCount; };
 struct OBJVertex { float x, y, z; float nx, ny, nz; float u, v; };

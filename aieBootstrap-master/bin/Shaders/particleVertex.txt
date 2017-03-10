@@ -14,5 +14,26 @@ void main()
 {
 	uv = UV;
 	colour = Colour; 
-	gl_Position = projectionViewWorldMatrix * Position;
+
+	float vertPosterLevel = 30;
+
+	float tempx = Position.x;
+	float tempy = Position.y;
+	float tempz = Position.z;
+
+	tempx *= vertPosterLevel;
+	tempx = int(tempx);
+	tempx /= vertPosterLevel;
+
+	tempy *= vertPosterLevel;
+	tempy = int(tempy);
+	tempy /= vertPosterLevel;
+
+	tempz *= vertPosterLevel;
+	tempz = int(tempz);
+	tempz /= vertPosterLevel;
+
+	vec4 tempPos = vec4 (tempx,tempy,tempz,1);
+
+	gl_Position = projectionViewWorldMatrix * tempPos;
 }

@@ -7,6 +7,7 @@ class FlyCam : public Camera
 	float speed, lookSpeed;
 	vec2 mousePosLastUpdate;
 	vec3 up;
+	bool lockRot;
 public:
 	FlyCam();
 	~FlyCam();

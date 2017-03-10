@@ -16,6 +16,8 @@ Entity spear;
 Entity spear2;
 unsigned int m_programID,m_particleProgramID, m_bufferProgramID;
 
+float vertPosterizeLevel = 100;
+
 Application3D::Application3D() {
 
 }
@@ -137,6 +139,7 @@ bool Application3D::startup() {
 
 	LoadObj();
 
+
 	CreateOpenGlBuffers(attribs, shapes);
 
 	FrameBufferStartup();
@@ -144,6 +147,9 @@ bool Application3D::startup() {
 	//modelPos = mat4(1);
 	spear.Init(m_glInfo);
 	spear2.Init(m_glInfo);
+
+	spear.ConfigureBoundingSpheres(&attribs);
+	spear2.ConfigureBoundingSpheres(&attribs);
 
 	spear2.MoveBy(vec3(3, 0, 0));
 	spear2.RotateBy(90, vec3(1, 1, 0));
@@ -454,6 +460,10 @@ void Application3D::CreateOpenGlBuffers(tinyobj::attrib_t & attribs, std::vector
 }
 
 void Application3D::update(float deltaTime) {
+	
+	ImGui::SliderFloat("Vertex Posterize Ammount",&vertPosterizeLevel,5,150);
+	ImGui::Text("Left-Alt to toggle lock camera rotation");
+	ImGui::Text("Left-Shift to move faster, Left-Ctrl to move slower");
 
 	// query time since application started
 	float time = getTime();
@@ -480,23 +490,6 @@ void Application3D::update(float deltaTime) {
 
 	m_emitter->Update(deltaTime, flyCam.GetWorldTransform());
 
-	if (input->wasKeyPressed(aie::INPUT_KEY_UP)) {
-		rough += 0.05f;
-	}
-	if (input->wasKeyPressed(aie::INPUT_KEY_DOWN)) {
-		rough -= 0.05f;
-	}
-	if (input->wasKeyPressed(aie::INPUT_KEY_RIGHT)) {
-		refCoef += 0.05f;
-	}
-	if (input->wasKeyPressed(aie::INPUT_KEY_LEFT)) {
-		refCoef -= 0.05f;
-	}
-	//if (refCoef > 1)refCoef = 1;
-	//if (rough > 1)rough = 1;
-
-	//if (refCoef < 0)refCoef = 0;
-	//if (rough < 0)rough = 0;
 	if (input->isKeyDown(aie::INPUT_KEY_ESCAPE))
 		quit();
 }
@@ -505,35 +498,6 @@ void Application3D::draw() {
 	int loc;
 	// wipe the gizmos clean for this frame
 	Gizmos::clear();
-	/*
-	// frame buffer stuff
-	//Gizmos::addSphere(vec3(0, 5, 0), 0.5f, 8, 8, vec4(1, 1, 0, 1));
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
-	//glViewport(0, 0, 1280, 720);
-	//glClearColor(0.75f, 0.75f, 0.75f, 1);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//// draw our meshes, or gizmos, to the render target 
-	//Gizmos::draw(flyCam.GetProjectionView());
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glViewport(0, 0, 1280, 720);
-	//glClearColor(0.25f, 0.25f, 0.25f, 1);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glUseProgram(m_bufferProgramID);
-	//loc = glGetUniformLocation(m_bufferProgramID, "projectionView");
-	//glUniformMatrix4fv(loc, 1, GL_FALSE, &(flyCam.GetProjectionView()[0][0]));
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, m_fboTexture);
-	//glUniform1i(glGetUniformLocation(m_bufferProgramID, "diffuse"), 0);
-	//glBindVertexArray(m_vao);
-	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-	*/
-
-	// wipe the screen to the background colour
-	//clearScreen();
-
-
 
 	// bind our target 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
@@ -558,8 +522,12 @@ void Application3D::draw() {
 	int cameraPos = glGetUniformLocation(m_programID, "CameraPos");
 	glUniform3fv(cameraPos, 1, &(flyCam.GetWorldTransform()[3][0]));
 
-	spear2.Draw(m_programID, &(sunPos[0]));
-	spear.Draw(m_programID, &(sunPos[0]));
+	// tell the shader where the pointer holding the ProjectionView is
+	loc = glGetUniformLocation(m_programID, "vertPosterLevel");
+	glUniform1f(loc, vertPosterizeLevel);
+
+	RenderCulling(spear);
+	RenderCulling(spear2);
 
 	//m_particleProgramID
 	glUseProgram(m_particleProgramID);
@@ -593,6 +561,27 @@ void Application3D::draw() {
 	glBindVertexArray(m_vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+}
+
+void Application3D::RenderCulling(Entity entity)
+{
+	vec4 planes[6]; 
+	flyCam.getFrustumPlanes(flyCam.GetProjectionView(), planes);
+	for (int i = 0; i < 6; i++)
+	{
+		float d = glm::dot(vec3(planes[i]), entity.sphere.centre) + planes[i].w;
+		if (d < -entity.sphere.radius)
+		{ 
+			printf("Culled\n");
+			break; 
+		} else if (d < entity.sphere.radius)
+		{ 
+			entity.Draw(m_programID, &(sunPos[0]));
+		} else
+		{ 
+			entity.Draw(m_programID, &(sunPos[0]));
+		}
+	}
 }
 
 unsigned int Application3D::GetProgromID()

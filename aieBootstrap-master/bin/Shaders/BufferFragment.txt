@@ -39,12 +39,25 @@ vec4 Distort(float sinMulti, float ammMulti)
 	return texture(target, newCoord); 
 }
 
-void main() 
-{ 
-	vec2 mid = vec2(0.5f); 
-	float distanceFromCentre = distance(fTexCoord, mid); 
+vec4 GrayScale () 
+{
+	vec4 colour = texture(target, fTexCoord); 
+	float temp = colour.x + colour.y + colour.z;
+	temp = temp;
 
-	vec4 tempColour = (BoxBlur() + Distort (15, 1))*0.5f ;
+	temp *= 2;
+
+	temp = int(temp);
+
+	temp /= 2;
+
+	return vec4(temp,temp,temp,1);
+}
+
+void main() 
+{
+
+	vec4 tempColour =texture(target, fTexCoord);
 
 	fragColour = tempColour;
 }

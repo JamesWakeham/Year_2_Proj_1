@@ -95,6 +95,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="BoundingSphere.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Gizmos.cpp" />
     <ClCompile Include="gl_core_4_4.c" />
@@ -110,6 +111,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui_internal.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Audio.h" />
+    <ClInclude Include="BoundingSphere.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Gizmos.h" />
     <ClInclude Include="gl_core_4_4.h" />

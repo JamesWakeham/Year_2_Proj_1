@@ -11,7 +11,11 @@ public:
 	~Entity();
 	Entity(const glm::vec3 startPos);
 
+	BoundingSphere sphere;
+
 	void Init(std::vector<OpenGLInfo> gLInfos);
+
+	void ConfigureBoundingSpheres(const tinyobj::attrib_t* attribs);
 
 	int modelRefNum = 0;
 	int diffuseRefNum = 1;
