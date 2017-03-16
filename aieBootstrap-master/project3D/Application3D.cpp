@@ -1,5 +1,6 @@
 #include "Application3D.h"
 
+
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
@@ -17,6 +18,10 @@ Entity spear2;
 unsigned int m_programID,m_particleProgramID, m_bufferProgramID;
 
 float vertPosterizeLevel = 100;
+
+GPUParticleEmitter* m_gpuEmitter;
+
+float totalTime;
 
 Application3D::Application3D() {
 
@@ -151,11 +156,15 @@ bool Application3D::startup() {
 	spear.ConfigureBoundingSpheres(&attribs);
 	spear2.ConfigureBoundingSpheres(&attribs);
 
-	spear2.MoveBy(vec3(3, 0, 0));
+	spear.MoveBy(vec3(0, 0, 10));
+	spear2.MoveBy(vec3(3, 0, 10));
 	spear2.RotateBy(90, vec3(1, 1, 0));
 
 	Gizmos::create(10000, 10000, 10000, 10000);
 
+
+	m_gpuEmitter = new GPUParticleEmitter(); 
+	m_gpuEmitter->initalise(100000, 0.1f, 5.0f, 5, 20, 1, 0.1f, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
 
 	m_emitter = new ParticleEmitter();
 	m_emitter->Initialise(1000, 500, 0.1f, 1.0f, 1, 5, 1, 0.1f,3, glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1),vec3(0,-1,0),false);
@@ -461,6 +470,8 @@ void Application3D::CreateOpenGlBuffers(tinyobj::attrib_t & attribs, std::vector
 
 void Application3D::update(float deltaTime) {
 	
+	totalTime += deltaTime;
+
 	ImGui::SliderFloat("Vertex Posterize Ammount",&vertPosterizeLevel,5,150);
 	ImGui::Text("Left-Alt to toggle lock camera rotation");
 	ImGui::Text("Left-Shift to move faster, Left-Ctrl to move slower");
@@ -540,7 +551,8 @@ void Application3D::draw() {
 	// gizmos for now, but replace with a 3D scene if desired 
 	Gizmos::draw(flyCam.GetProjectionView()); 
 
-
+	m_gpuEmitter->draw((float)totalTime, flyCam.GetWorldTransform(), flyCam.GetProjectionView());
+	
 	// bind the back-buffer 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, 1280, 720);

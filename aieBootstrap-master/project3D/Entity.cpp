@@ -34,7 +34,7 @@ void Entity::ConfigureBoundingSpheres(const tinyobj::attrib_t* attribs)
 
 void Entity::MoveTo(const vec3 worldSpacePos)
 {
-	worldTransform[3] = vec4(worldSpacePos, 1);
+	worldTransform[3] = vec4(worldSpacePos, 1); 
 }
 
 void Entity::MoveBy(const vec3 amount)
@@ -48,7 +48,7 @@ void Entity::RotateBy(const float amount, const vec3 axis)
 
 	rotation = glm::rotate(rotation, amount, axis);
 
-	worldTransform = rotation * worldTransform;
+	worldTransform = worldTransform * rotation;
 }
 
 void Entity::SetRotationToIdentity()

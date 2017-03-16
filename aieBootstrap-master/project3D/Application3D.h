@@ -9,6 +9,8 @@
 #include "Application.h"
 #include "ParticleEmitter.h"
 #include <imgui.h>
+#include "GPUParticleEmitter.h"
+#include "Shader.h"
 
 class Application3D : public aie::Application {
 public:
